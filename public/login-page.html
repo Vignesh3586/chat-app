@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="icon/chat.png" type="image/png">
+    <title>Chat Hive</title>
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+    
+    <section class="login">
+        <form id="login-form">
+            <h1>Login</h1>
+            <label for="username">Username</label>
+            <input 
+                required
+                placeholder="username"
+                id="username"
+                type="text" />
+            <label for="roomname">Select Room</label>
+            <div class="roomname"></div>
+            <button type="button" id="login-btn">Join Room</button>
+            <button type="button" id="create-room-btn">Create Room</button>
+        </form>
+    </section>
+    <script src="../socket.io/socket.io.js"></script>
+    <script src="./js/main.js"></script> 
+</body>
+</html>

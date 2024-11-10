@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="icon/chat.png" type="image/png">
+    <title>Chat Hive</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+    <section class="chat-box-container">
+    <section class="nav-bar with-out-nav">
+        <div class="nav-header">
+        <button class="back-btn"><i class="fa-solid fa-chevron-left"></i></button> 
+        <div>
+        <i class="fas fa-comment"></i>
+        <h1>ChatHive</h1>
+        </div>
+       </div>
+       <div class="nav-bar-label">
+        <label for="list-room-name"><i class="fa-solid fa-hotel"></i>Room Name</label>
+       </div>
+        <div id="list-room-name"></div>
+        <div class="nav-bar-label">
+            <label for="list-user-name"><i class="fa fa-users" aria-hidden="true"></i>User Names</label>
+        </div>
+      <div id="list-user-name"></div>   
+    </section>
+    <section class="chat-container">
+        <div class="header-chat-box">
+            <button class="nav-bar-btn"><i class="fa-solid fa-bars"></i></button>
+            <div>
+            <i class="fas fa-comment"></i>
+            <h1>ChatHive</h1>
+        </div>
+        <button id="leave-btn">Leave Room</button>
+    </div>
+        <div class="chat-box" ></div>
+        <form id="chat-form">
+            <input type="text" placeholder="Type Message" required aria-label="Message input">
+            <button class="send-btn" type="submit"> 
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </form>
+    </section>
+</section>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="./js/main.js"></script>
+</body>
+</html>

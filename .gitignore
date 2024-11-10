@@ -1,0 +1,95 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependency directories
+node_modules/
+bower_components/
+
+# Build directories
+dist/
+out/
+build/
+
+# Environment files (be careful with sensitive data)
+.env
+.env.local
+.env.*.local
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE/editor-specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Mac OS specific
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows specific
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+
+# Coverage directory
+coverage/
+
+# TypeScript
+*.tsbuildinfo
+
+# Compiled files
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Package lock files (depending on your preference, you may or may not include these)
+# package-lock.json
+# yarn.lock
+
+# Git config files
+.gitconfig
+
+# React Native
+.expo/
+web-build/
+*.expo-shared/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Java
+*.war
+*.ear
+*.jar
+
+# VS Code settings (optional, only if you don't want to share them)
+.vscode/
+
+# Temporary files created by npm link
+npm-debug.log
+yarn-debug.log
+lerna-debug.log
+pnpm-debug.log
+
+# Files produced by plugins, such as dotenv-safe, dotenv-linter, etc.
+.env.defaults
+
+# For Next.js
+.next/
+*.next/
+
