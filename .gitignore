@@ -93,3 +93,4 @@ pnpm-debug.log
 .next/
 *.next/
 
+.vercel
