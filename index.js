@@ -6,21 +6,31 @@ const createAdapter = require("@socket.io/redis-adapter").createAdapter;
 const { createClient } = require("redis");
 require("dotenv").config();
 const formatMessage = require("./utils/messageFunctions");
-const { getCurrentUser, getLeaveUser, getRoomUsers, userJoin,createRoom ,getRoom,removeRoom, getAllRooms} = require("./utils/userFunctions");
-const fs=require('fs')
-const PORT = process.env.PORT || 4000;
+const { getUserById, removeUserFromRoom, getRoomUsers, addUserToRoom,createRoom ,getRoomById,getAllRooms,removeRoom} = require("./model/dataModel");
+const PORT = process.env.PORT
 const app = express();
 app.use(express.static(path.join(__dirname, "public")));
 const server = http.createServer(app);
 const io = socket(server);
+const { connectDB }=require('./utils/db')
+
 
 app.use(express.json());
- 
+
+const fetchDB=async()=>{
+  await connectDB()
+}
+
+fetchDB()
+
+
 app.get('/rooms',async(req,res)=>{
    try{
+    
     const roomsData=await getAllRooms()
-    if(roomsData.rooms &&Array.isArray(roomsData.rooms)&& roomsData.rooms.length>0){
-        return res.status(200).json(roomsData.rooms)
+    console.log(roomsData[0].users)
+    if(roomsData&&Array.isArray(roomsData)&& roomsData.length>0){
+        return res.status(200).json(roomsData)
     }else{
         return res.status(200).json([])
     }
@@ -42,9 +52,10 @@ app.get('/create-room',(req,res)=>{
 })
 console.log(`Server starting on port: ${PORT}`);
 
+const pubClient = createClient({ url: "redis://127.0.0.1:6379" });
+
 (async () => {
     try {
-        const pubClient = createClient({ url: "redis://127.0.0.1:6379" });
         await pubClient.connect();
         const subClient = pubClient.duplicate();
         io.adapter(createAdapter(pubClient, subClient)); // Adapter setup for Redis
@@ -57,44 +68,34 @@ console.log(`Server starting on port: ${PORT}`);
 
 const botName = "chatBot";
  
-const dataPath = path.join(__dirname,"model","data.json");
+const storeUserRoom=async(userid,roomid)=>{
+    await pubClient.hSet(`user:${userid}`,"roomid",roomid)
+}
 
-const writeFile = async (data) => {
-    try {
-        await fs.promises.writeFile(dataPath, JSON.stringify(data, null, 2)); // Adding indentation for readability
-        console.log("File written successfully");
-    } catch (err) {
-        console.error("Error writing file:", err);
-    }
-};
+const getUserRoom=async(userid)=>{
+    return await pubClient.hGet(`user:${userid}`,"roomid")
+}
 
-const readFile = async () => {
-    try {
-        const data = await fs.promises.readFile(dataPath, 'utf8');
-        return JSON.parse(data);
-    } catch (err) {
-        console.error(`Error reading file: ${err}`);
-        throw err; // Rethrow the error for handling in the calling function
-    }
-};
+const removeUserRoom=async(userid)=>{
+    await pubClient.del(`user:${userid}`)
+}
 
 io.on("connection", (socket) => {
     console.log("New connection");
-
+    const userId=socket.id
     // When a user creates a room
     socket.on('createRoom',async({ room, username }) => {
         try {
             // Log username and room details with proper string interpolation
-    
-    
-            // Create room and get the room and user IDs
-            const getRoom = await createRoom(username, room);
+       
+           // Create room and get the room and user IDs
+            const getRoom = await createRoom(userId,username, room);
             const Room = getRoom.room;
     
             // Store room ID and user ID in a JSON file asynchronously
             const data={ roomid: Room.id, userid: getRoom.userId }
 
-            await writeFile(data)
+            await storeUserRoom(data.userid,data.roomid)
     
             // Log assigned room ID and user I
     
@@ -103,7 +104,7 @@ io.on("connection", (socket) => {
               // Send room users and room info
         io.to(Room.roomName).emit("roomUsers", {
             room: Room.roomName,
-            users:await getRoomUsers(Room.id),
+            users:await getRoomUsers(data.roomid),
         });
             // Emit events to notify the client
             socket.emit('roomCreated', Room.roomName);
@@ -117,19 +118,18 @@ io.on("connection", (socket) => {
 
     // When a user joins a room
     socket.on("joinRoom",async ({roomid,username}) => {
+        const user =await addUserToRoom(userId,roomid,username);
 
-        const user =await userJoin(roomid,username);
-
-        const roomDetails=await getRoom(user.roomId)
+        const roomDetails=await getRoomById(user.roomId)
         // Store roomid and userid in the socket object
     
         const data={roomid:roomDetails.id,
             userid: user.id}
 
-         await writeFile(data)
+         await storeUserRoom(data.userid,data.roomid)
 
 
-        console.log(`Assigned roomid: ${roomDetails.id}, userid: ${user.id}`);
+        console.log(`Assigned roomid: ${data.roomid}, userid: ${data.userid}`);
 
         // Join the room
         socket.join(roomDetails.roomName); // Add socket to the room
@@ -150,24 +150,22 @@ io.on("connection", (socket) => {
     });
 
     // Listen for chat messages
-    socket.on("chatMessage",async(message) => {
+    socket.on("chatMessage",async({message,roomId}) => {
         // Debugging roomid and userid before usage
-        const data= await readFile()
-        const roomid=data.roomid;
-        const userid=data.userid;
+        const data= await getUserRoom(userId)
 
 
-        if (!roomid || !userid) {
+        if (!roomId || !userId) {
             console.error('Room ID or User ID is undefined in chatMessage event');
             socket.emit('error', 'Unable to send message. Please join a room first.');
             return;
         }
 
-        const currentUser = await getCurrentUser(userid);
-        const room=await getRoom(roomid)
+        const currentUser = await getUserById(roomId,userId);
+        const room=await getRoomById(roomId)
 
         if (!currentUser) {
-            console.error(`User not found for socket ID: ${roomid}`);
+            console.error(`User not found for socket ID: ${roomId}`);
             return;
         }
      
@@ -178,23 +176,13 @@ io.on("connection", (socket) => {
     });
 
     // When a user disconnects
-    socket.on("disconnect", async () => {
-        const data=await readFile()
-        if(!data){
-            console.log("Data is undefined")
-            return;
-        }
-        const roomid = data.roomid;
-        const userid = data.userid;
-        
-
-        if (!roomid || !userid) {
-            console.log('Room ID or User ID is undefined during disconnect');
-            return;
-        }
-        
-        const user=await getLeaveUser(userid);
-        const room=await getRoom(roomid)
+    socket.on("disconnect", async() => {
+        console.log(userId)
+        const roomid=await getUserRoom(userId)
+        await removeUserRoom(userId)
+    
+        const user=await removeUserFromRoom(roomid,userId);
+        const room=await getRoomById(roomid)
         const roomUsers = await getRoomUsers(user.roomId);
 
         if(!(roomUsers.length>0)){
@@ -216,10 +204,7 @@ io.on("connection", (socket) => {
 
 
 
-
-
-
-
 server.listen(PORT, () => console.log("Server is running on port: " + PORT));
 
  return server
+

@@ -41,6 +41,12 @@ document.addEventListener("DOMContentLoaded", () => {
           const select = document.createElement('select');
           select.classList.add('select-room');
           
+          const defaultOption = document.createElement('option');
+          defaultOption.value = ""; // Empty value for default
+          defaultOption.innerText = "Select a Room";
+          defaultOption.disabled = true;
+          defaultOption.selected = true;
+          select.appendChild(defaultOption);
 
           rooms.forEach((room) => {
             const option = document.createElement('option');
@@ -51,6 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
           select.addEventListener('change', () => {
             selectedOption = select.value;
+            console.log(selectedOption)
           });
 
           selectRooms.appendChild(select);
@@ -67,8 +74,10 @@ document.addEventListener("DOMContentLoaded", () => {
     joinRoom.addEventListener('click', () => {
      const roomId= selectedOption;
      const userNameOfRoom = userName.value.trim();
-
-
+     
+     console.log(roomId)
+     console.log(userNameOfRoom)
+      
       if (roomId &&  userNameOfRoom) {
         const roomData={
           roomid:roomId,
@@ -76,7 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
           option:"joinRoom"
         }
      
-        localStorage.setItem("roomData",JSON.stringify(roomData))
+        sessionStorage.setItem("roomData",JSON.stringify(roomData))
         window.location.href = "chat-box.html";
       } else {
         alert("Please select a room and enter your username.");
@@ -107,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
           userName:userName,
           option:"createRoom",
         }
-        localStorage.setItem("roomData",JSON.stringify(roomData))
+        sessionStorage.setItem("roomData",JSON.stringify(roomData))
         window.location.href = "chat-box.html";
       } else {
         alert("Room name cannot be empty.");
@@ -122,7 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
  // Function to initialize event listeners on the chat-box page
  function initializeChatBoxEvents() {
     const socket=io()
-    const data=JSON.parse(localStorage.getItem('roomData'))
+    const data=JSON.parse(sessionStorage.getItem('roomData'))
     if(data.option=="joinRoom"){
     socket.emit('joinRoom', { roomid:data.roomid,username:data.userName});
     }
@@ -145,7 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const message = (e.target.elements[0].value).trim();
     if (!message) return false;
     if(socket){
-      socket.emit("chatMessage", message);
+      socket.emit("chatMessage", {message,roomId:data.roomid});
     }
     e.target.elements[0].value= "";
     e.target.elements[0].focus();
@@ -160,8 +169,16 @@ document.addEventListener("DOMContentLoaded", () => {
     navigationBar.classList.add('with-out-nav') 
 })
 
+  window.addEventListener("beforeunload",()=>{
+    if(socket){
+      socket.disconnect()
+    }
+  })
   // Event listener for leaving the room
   leaveBtn.addEventListener('click', () => {
+    if(socket){
+      socket.disconnect()
+    }
     if (confirm("Are you sure you want to leave the room?")) {
       window.location.href = "login-page.html";
     }
