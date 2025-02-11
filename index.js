@@ -28,7 +28,6 @@ app.get('/rooms',async(req,res)=>{
    try{
     
     const roomsData=await getAllRooms()
-    console.log(roomsData[0].users)
     if(roomsData&&Array.isArray(roomsData)&& roomsData.length>0){
         return res.status(200).json(roomsData)
     }else{
@@ -50,7 +49,6 @@ app.get("/chat-box",(req,res)=>{
 app.get('/create-room',(req,res)=>{
     res.sendFile(path.join(__dirname,"public","create-room.html"))
 })
-console.log(`Server starting on port: ${PORT}`);
 
 const pubClient = createClient({ url: "redis://127.0.0.1:6379" });
 
@@ -59,7 +57,6 @@ const pubClient = createClient({ url: "redis://127.0.0.1:6379" });
         await pubClient.connect();
         const subClient = pubClient.duplicate();
         io.adapter(createAdapter(pubClient, subClient)); // Adapter setup for Redis
-        console.log("Connected to Redis");
     } catch (error) {
         console.error('Error connecting to Redis:', error);
         process.exit(1); // Exit the application if Redis connection fails
@@ -81,16 +78,16 @@ const removeUserRoom=async(userid)=>{
 }
 
 io.on("connection", (socket) => {
-    console.log("New connection");
-    const userId=socket.id
     // When a user creates a room
-    socket.on('createRoom',async({ room, username }) => {
+    socket.on('createRoom',async({ roomName, userName }) => {
         try {
             // Log username and room details with proper string interpolation
        
            // Create room and get the room and user IDs
-            const getRoom = await createRoom(userId,username, room);
+            const getRoom = await createRoom(userName, roomName);
             const Room = getRoom.room;
+            socket.userId=getRoom.userId
+            socket.roomId=getRoom.room.id
     
             // Store room ID and user ID in a JSON file asynchronously
             const data={ roomid: Room.id, userid: getRoom.userId }
@@ -117,10 +114,11 @@ io.on("connection", (socket) => {
     });
 
     // When a user joins a room
-    socket.on("joinRoom",async ({roomid,username}) => {
-        const user =await addUserToRoom(userId,roomid,username);
-
-        const roomDetails=await getRoomById(user.roomId)
+    socket.on("joinRoom",async ({userName,roomId}) => {
+        const user =await addUserToRoom(roomId,userName);
+       socket.userId=user.id
+       socket.roomId=user.roomId
+        const roomDetails=await getRoomById(socket.roomId)
         // Store roomid and userid in the socket object
     
         const data={roomid:roomDetails.id,
@@ -128,8 +126,6 @@ io.on("connection", (socket) => {
 
          await storeUserRoom(data.userid,data.roomid)
 
-
-        console.log(`Assigned roomid: ${data.roomid}, userid: ${data.userid}`);
 
         // Join the room
         socket.join(roomDetails.roomName); // Add socket to the room
@@ -150,22 +146,21 @@ io.on("connection", (socket) => {
     });
 
     // Listen for chat messages
-    socket.on("chatMessage",async({message,roomId}) => {
+    socket.on("chatMessage",async({message}) => {
         // Debugging roomid and userid before usage
-        const data= await getUserRoom(userId)
-
-
-        if (!roomId || !userId) {
+        const data= await getUserRoom(socket.userId)
+       
+        if (!socket.roomId|| !socket.userId) {
             console.error('Room ID or User ID is undefined in chatMessage event');
             socket.emit('error', 'Unable to send message. Please join a room first.');
             return;
         }
 
-        const currentUser = await getUserById(roomId,userId);
-        const room=await getRoomById(roomId)
+        const currentUser = await getUserById(socket.roomId,socket.userId);
+        const room=await getRoomById(socket.roomId)
 
         if (!currentUser) {
-            console.error(`User not found for socket ID: ${roomId}`);
+            console.error(`User not found for socket ID: ${socket.roomId}`);
             return;
         }
      
@@ -177,16 +172,14 @@ io.on("connection", (socket) => {
 
     // When a user disconnects
     socket.on("disconnect", async() => {
-        console.log(userId)
-        const roomid=await getUserRoom(userId)
-        await removeUserRoom(userId)
+        await removeUserRoom(socket.userId)
     
-        const user=await removeUserFromRoom(roomid,userId);
-        const room=await getRoomById(roomid)
-        const roomUsers = await getRoomUsers(user.roomId);
+        const user=await removeUserFromRoom(socket.roomId,socket.userId);
+        const room=await getRoomById(socket.roomId)
+        const roomUsers = await getRoomUsers(socket.roomId);
 
         if(!(roomUsers.length>0)){
-            await removeRoom(roomid)
+            await removeRoom(socket.roomId)
             return;
         }
 

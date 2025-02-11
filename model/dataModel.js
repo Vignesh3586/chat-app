@@ -1,17 +1,18 @@
 const {getDB}=require('../utils/db');
 const { v4: uuidv4 } = require('uuid');
 
-const createRoom=async(userId,username, room)=>{
+const createRoom=async(username,roomname)=>{
     const db=getDB()
     const uniqueID1 =uuidv4(); // Generate a new unique ID for the room
+    const uniqueID2 =uuidv4();
     
     const roomData={
         id: uniqueID1,
-        roomName: room,
+        roomName: roomname,
     }
 
     const user = {
-        id:userId,
+        id:uniqueID2,
         username:username,
         roomId:roomData.id,
     }
@@ -28,7 +29,6 @@ const createRoom=async(userId,username, room)=>{
 }
 
 const getAllRooms=async()=>{
-    console.log(getDB())
     const db=getDB()
     const result=await db.collection('rooms').find().toArray()
     return result
@@ -52,9 +52,9 @@ const getUserById=async(roomid,userid)=>{
     return result ? result.users[0] : "User not found";
 }
 
-const addUserToRoom=async(userId,roomid, username)=>{
+const addUserToRoom=async(roomid,username)=>{
     const db=getDB()
-    const newUser = {id:userId, username, roomId:roomid }; // Create a new user object
+    const newUser = {id:uuidv4(), username, roomId:roomid }; // Create a new user object
 
     await db.collection("rooms").updateOne({id:roomid},{$push:{users:newUser}})// Save the updated data back to the file
 

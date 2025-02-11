@@ -7,7 +7,6 @@ const connectDB=async()=>{
     try{
         const client=await mongoClient.connect(MONGO_URI)
         dbo=client.db("mydb")
-        console.log("Database created")
         await dbo.createCollection("rooms")  
     }catch(err){
         console.error(`Error:${err.message}`)

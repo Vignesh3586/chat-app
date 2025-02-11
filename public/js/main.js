@@ -57,7 +57,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
           select.addEventListener('change', () => {
             selectedOption = select.value;
-            console.log(selectedOption)
           });
 
           selectRooms.appendChild(select);
@@ -74,9 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
     joinRoom.addEventListener('click', () => {
      const roomId= selectedOption;
      const userNameOfRoom = userName.value.trim();
-     
-     console.log(roomId)
-     console.log(userNameOfRoom)
+  
       
       if (roomId &&  userNameOfRoom) {
         const roomData={
@@ -133,10 +130,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const socket=io()
     const data=JSON.parse(sessionStorage.getItem('roomData'))
     if(data.option=="joinRoom"){
-    socket.emit('joinRoom', { roomid:data.roomid,username:data.userName});
+    socket.emit('joinRoom', {userName:data.userName,roomId:data.roomid});
     }
     if(data.option=='createRoom'){
-    socket.emit('createRoom', {room:data.roomName,username:data.userName});
+    socket.emit('createRoom', {roomName:data.roomName,userName:data.userName});
     }
 
   const chatBox = document.querySelector('.chat-box');
@@ -154,7 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const message = (e.target.elements[0].value).trim();
     if (!message) return false;
     if(socket){
-      socket.emit("chatMessage", {message,roomId:data.roomid});
+      socket.emit("chatMessage", {message});
     }
     e.target.elements[0].value= "";
     e.target.elements[0].focus();
@@ -176,12 +173,14 @@ document.addEventListener("DOMContentLoaded", () => {
   })
   // Event listener for leaving the room
   leaveBtn.addEventListener('click', () => {
-    if(socket){
-      socket.disconnect()
-    }
+  
     if (confirm("Are you sure you want to leave the room?")) {
+      if(socket){
+        socket.disconnect()
+      }
       window.location.href = "login-page.html";
     }
+
   });
    
   const outputRoomName=(room)=>{
