@@ -15,13 +15,15 @@ const io = socket(server);
 const { connectDB }=require('./utils/db')
 
 
+const fetchDB=async()=>{
+    await connectDB()
+  }
+  
+fetchDB()
+
 app.use(express.json());
 
-const fetchDB=async()=>{
-  await connectDB()
-}
 
-fetchDB()
 
 
 app.get('/rooms',async(req,res)=>{
