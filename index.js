@@ -1,13 +1,5 @@
 const express = require("express");
 const path = require('path');
-const { connectDB }=require('./utils/db')
-const fetchDB=async()=>{
-    await connectDB()
-  }
-  
-fetchDB()
-
-
 const http = require("http");
 const socket = require("socket.io");
 const createAdapter = require("@socket.io/redis-adapter").createAdapter;
@@ -21,14 +13,7 @@ app.use(express.static(path.join(__dirname, "public")));
 const server = http.createServer(app);
 const io = socket(server);
 
-
-
-
-
 app.use(express.json());
-
-
-
 
 app.get('/rooms',async(req,res)=>{
    try{

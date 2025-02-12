@@ -2,7 +2,7 @@ const {getDB}=require('../utils/db');
 const { v4: uuidv4 } = require('uuid');
 
 const createRoom=async(username,roomname)=>{
-    const db=getDB()
+    const db=await getDB()
     const uniqueID1 =uuidv4(); // Generate a new unique ID for the room
     const uniqueID2 =uuidv4();
     
@@ -29,31 +29,31 @@ const createRoom=async(username,roomname)=>{
 }
 
 const getAllRooms=async()=>{
-    const db=getDB()
+    const db=await getDB()
     const result=await db.collection('rooms').find().toArray()
     return result
 }
 
 const getRoomById=async(id)=>{
-    const db=getDB()
+    const db=await getDB()
     const result=await db.collection('rooms').findOne({id:id})
     return result
 }
 
 const getRoomUsers=async(roomId)=>{
-    const db=getDB()
+    const db=await getDB()
     const result=await db.collection("rooms").findOne({id:roomId})
     return result.users;
 }
 
 const getUserById=async(roomid,userid)=>{
-    const db=getDB()
+    const db=await getDB()
     const result=await db.collection("rooms").findOne({id:roomid,"users.id":userid},{projection:{"users.$":1}})
     return result ? result.users[0] : "User not found";
 }
 
 const addUserToRoom=async(roomid,username)=>{
-    const db=getDB()
+    const db=await getDB()
     const newUser = {id:uuidv4(), username, roomId:roomid }; // Create a new user object
 
     await db.collection("rooms").updateOne({id:roomid},{$push:{users:newUser}})// Save the updated data back to the file
@@ -62,7 +62,7 @@ const addUserToRoom=async(roomid,username)=>{
 }
 
 const removeUserFromRoom=async(roomid,userid)=>{
-    const db=getDB()
+    const db=await getDB()
     const room=await getRoomById(roomid)
     if(room.users.length>0){
         const removeOfUser = room.users.find(user => user.id == userid);
@@ -73,7 +73,7 @@ const removeUserFromRoom=async(roomid,userid)=>{
 }
 
 const removeRoom=async(roomid)=>{
-    const db=getDB()
+    const db=await getDB()
     const result=await db.collection('rooms').deleteOne({id:roomid})
     return result.deletedCount > 0 
 }

@@ -15,11 +15,12 @@ const connectDB=async()=>{
 }
 
 
-const getDB=()=>{
+const getDB=async()=>{
+   await connectDB()
     if (!dbo) {
         throw new Error("Database not initialized. Call connectDB() first.");
     }
     return dbo
 }
 
-module.exports={connectDB,getDB}
+module.exports={getDB}
