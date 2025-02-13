@@ -64,7 +64,7 @@ const addUserToRoom=async(roomid,username)=>{
 const removeUserFromRoom=async(roomid,userid)=>{
     const db=await getDB()
     const room=await getRoomById(roomid)
-    if(room.users.length>0){
+    if(room && room.users.length>0){
         const removeOfUser = room.users.find(user => user.id == userid);
         const result=await db.collection('rooms').updateOne({id:roomid},{$pull:{users:{id:userid}}})
         return result.modifiedCount > 0 ? removeOfUser : "user not found"
