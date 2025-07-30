@@ -44,7 +44,9 @@ app.get('/create-room',(req,res)=>{
 
 const pubClient = createClient({ 
     url: process.env.REDIS_URI,
-    socket: { tls: true, 
+    socket: { 
+        tls: true, 
+        rejectUnauthorized: false,
      },
     connectTimeout: 10000, 
 });
