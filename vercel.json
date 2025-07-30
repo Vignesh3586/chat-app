@@ -11,6 +11,9 @@
     }
   ],
   "routes": [
+    { "src": "/public/(.*)", "dest": "/public/$1" },
+    { "src": "/socket.io/(.*)", "dest": "/index.js" },
     { "src": "/(.*)", "dest": "/index.js" }
   ]
 }
+
