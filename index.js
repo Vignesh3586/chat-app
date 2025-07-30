@@ -12,17 +12,9 @@ const app = express();
 app.use(express.static(path.join(__dirname, "public")));
 const server = http.createServer(app);
 const io = socket(server);
-const { connectDB }=require('./utils/db')
 
 
 app.use(express.json());
-
-const fetchDB=async()=>{
-  await connectDB()
-}
-
-fetchDB()
-
 
 app.get('/rooms',async(req,res)=>{
    try{
@@ -50,7 +42,7 @@ app.get('/create-room',(req,res)=>{
     res.sendFile(path.join(__dirname,"public","create-room.html"))
 })
 
-const pubClient = createClient({ url: "rediss://default:AV6bAAIjcDE0MDRiN2E1MTI4MTU0MjhjOTZhZTI3OTlkYWM5ODExOHAxMA@legible-chicken-24219.upstash.io:6379"});
+const pubClient = createClient({ url: "redis://127.0.0.1:6379" });
 
 (async () => {
     try {
@@ -78,6 +70,7 @@ const removeUserRoom=async(userid)=>{
 }
 
 io.on("connection", (socket) => {
+    console.log("new connection")
     // When a user creates a room
     socket.on('createRoom',async({ roomName, userName }) => {
         try {
