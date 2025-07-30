@@ -42,7 +42,12 @@ app.get('/create-room',(req,res)=>{
     res.sendFile(path.join(__dirname,"public","create-room.html"))
 })
 
-const pubClient = createClient({ url: "redis://127.0.0.1:6379" });
+const pubClient = createClient({ 
+    url: process.env.REDIS_URI,
+    socket: { tls: true, 
+     },
+    connectTimeout: 10000, 
+});
 
 (async () => {
     try {
