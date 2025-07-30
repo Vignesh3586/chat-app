@@ -50,7 +50,7 @@ app.get('/create-room',(req,res)=>{
     res.sendFile(path.join(__dirname,"public","create-room.html"))
 })
 
-const pubClient = createClient({ url: "redis://127.0.0.1:6379" });
+const pubClient = createClient({ url: "rediss://default:AV6bAAIjcDE0MDRiN2E1MTI4MTU0MjhjOTZhZTI3OTlkYWM5ODExOHAxMA@legible-chicken-24219.upstash.io:6379"});
 
 (async () => {
     try {
