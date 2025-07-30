@@ -7,12 +7,18 @@ const { createClient } = require("redis");
 require("dotenv").config();
 const formatMessage = require("./utils/messageFunctions");
 const { getUserById, removeUserFromRoom, getRoomUsers, addUserToRoom,createRoom ,getRoomById,getAllRooms,removeRoom} = require("./model/dataModel");
+const { connectDB } = require("./utils/db");
 const PORT = process.env.PORT
 const app = express();
 app.use(express.static(path.join(__dirname, "public")));
 const server = http.createServer(app);
 const io = socket(server);
 
+const fetchDB=async()=>{
+   await connectDB()
+}
+
+fetchDB()
 
 app.use(express.json());
 
