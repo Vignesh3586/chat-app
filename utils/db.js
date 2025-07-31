@@ -23,4 +23,4 @@ const getDB=async()=>{
     return dbo
 }
 
-module.exports={getDB}
+module.exports={getDB,connectDB}
